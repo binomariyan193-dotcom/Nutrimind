@@ -41,9 +41,12 @@ class AIChatService:
         # Build context strings
         context_str = f"User Profile: "
         if profile:
-            context_str += f"Weight {profile.weight_kg}kg, Goal: {profile.health_goal}, Diet: {profile.diet_preference}. "
+            diet = ", ".join(profile.dietary_preferences) if profile.dietary_preferences else "None"
+            context_str += f"Weight {profile.weight_kg}kg, Goal: {profile.health_goal}, Diet: {diet}. "
         if medical:
-            context_str += f"Conditions: {medical.conditions}, Allergies: {medical.food_allergies}. "
+            allergies = ", ".join(medical.allergies) if medical.allergies else "None"
+            conditions = ", ".join(medical.conditions) if medical.conditions else "None"
+            context_str += f"Conditions: {conditions}, Allergies: {allergies}. "
             
         context_str += f"Nutrition logged today: {round(total_cals)} kcal, {round(total_pro)}g protein."
 
