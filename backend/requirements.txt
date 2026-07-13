@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+supabase
+python-dotenv
+pydantic[email]
+sqlalchemy
+psycopg2-binary
+python-multipart
+Pillow
+google-generativeai
+httpx
+reportlab
