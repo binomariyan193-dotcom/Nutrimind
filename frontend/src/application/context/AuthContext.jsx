@@ -1,64 +1,17 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../../infrastructure/services/supabase';
+import React, { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext({});
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [session, setSession] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Hardcoded Demo User for open access mode
+  const [user] = useState({ id: 'demo-user', email: 'demo@nutrimind.app' });
+  const [session] = useState({ access_token: 'demo-token' });
+  const [loading] = useState(false);
 
-  useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for changes on auth state (logged in, signed out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const signup = async (email, password, firstName, lastName) => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    const response = await fetch(`${API_URL}/auth/signup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, first_name: firstName, last_name: lastName })
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.detail || 'Signup failed');
-    }
-    // Backend signals email confirmation is needed
-    if (data.email_confirmation_required) {
-      throw new Error('Please check your email for confirmation.');
-    }
-    return data;
-  };
-
-  const login = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    return data;
-  };
-
-  const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-  };
-
-  const resetPassword = async (email) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-    if (error) throw error;
-  };
+  const signup = async () => {};
+  const login = async () => {};
+  const logout = async () => {};
+  const resetPassword = async () => {};
 
   const value = {
     session,

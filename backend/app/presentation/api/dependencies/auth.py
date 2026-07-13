@@ -1,24 +1,28 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from app.infrastructure.external.supabase_client import supabase
+from sqlalchemy.orm import Session
+from app.presentation.api.dependencies.database import get_db
+from app.infrastructure.database.models import User
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    token = credentials.credentials
-    try:
-        # Verify the JWT token with Supabase by getting the user
-        response = supabase.auth.get_user(token)
-        if not response or not response.user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authentication credentials",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        return response.user
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Could not validate credentials: {str(e)}",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+class MockUser:
+    def __init__(self, id):
+        self.id = id
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
+    # Bypass Supabase Authentication completely.
+    # Find the first user in the database to act as the universal demo user.
+    user = db.query(User).first()
+    
+    # If no users exist in the database at all, create one.
+    if not user:
+        user = User(email="demo@nutrimind.app")
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        
+    return MockUser(id=str(user.id))

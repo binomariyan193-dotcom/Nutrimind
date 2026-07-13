@@ -20,10 +20,10 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
+          {/* Public Routes (Redirect to Dashboard since Auth is disabled) */}
+          <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/signup" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/forgot-password" element={<Navigate to="/dashboard" replace />} />
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
