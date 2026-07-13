@@ -30,9 +30,10 @@ class AIChatService:
         medical = db.query(MedicalHistory).filter(MedicalHistory.user_id == user_id).first()
         
         # We also grab nutrition from today just in case they ask about daily limits
-        today = datetime.now().date()
+        from datetime import datetime, time
+        today_start = datetime.combine(datetime.now().date(), time.min)
         meals_data = db.query(Nutrition).join(Meal, Nutrition.meal_id == Meal.id)\
-                       .filter(Meal.user_id == user_id, Meal.timestamp >= today).all()
+                       .filter(Meal.user_id == user_id, Meal.timestamp >= today_start).all()
                        
         total_cals = sum(m.calories for m in meals_data)
         total_pro = sum(m.protein_g for m in meals_data)
