@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { supabase } from '../supabase';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const _rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = _rawApiUrl.replace(/\/+$/, '');
 
 const getAuthHeaders = async (isMultipart = false) => {
   const { data } = await supabase.auth.getSession();
