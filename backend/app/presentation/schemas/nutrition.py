@@ -1,14 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
-class DetectedItemInput(BaseModel):
-    food_name: str
-    estimated_weight_grams: float
-    confidence_score: Optional[float] = None
-
-class NutritionAnalysisRequest(BaseModel):
-    items: List[DetectedItemInput]
-
 class NutrientBreakdown(BaseModel):
     calories: float = 0.0
     protein_g: float = 0.0
@@ -23,6 +15,15 @@ class NutrientBreakdown(BaseModel):
     vitamin_c_mg: float = 0.0
     vitamin_d_iu: float = 0.0
 
+class DetectedItemInput(BaseModel):
+    food_name: str
+    estimated_weight_grams: float
+    confidence_score: Optional[float] = None
+    estimated_nutrients: Optional[NutrientBreakdown] = None
+
+class NutritionAnalysisRequest(BaseModel):
+    items: List[DetectedItemInput]
+
 class AnalyzedFoodItem(BaseModel):
     original_name: str
     matched_name: Optional[str] = None
@@ -33,3 +34,4 @@ class AnalyzedFoodItem(BaseModel):
 class NutritionAnalysisResponse(BaseModel):
     total_nutrients: NutrientBreakdown
     items: List[AnalyzedFoodItem]
+

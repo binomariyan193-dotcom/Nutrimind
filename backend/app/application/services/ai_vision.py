@@ -35,6 +35,7 @@ class FoodDetectionService:
             You are an expert nutritionist and food recognition AI.
             Analyze the provided image and detect every single food item present on the plate or in the frame.
             For each item, estimate the serving size (weight in grams).
+            Also, provide your best estimation of the nutritional breakdown for that estimated weight.
             Provide a confidence score between 0.0 and 1.0 for your detection.
             
             You MUST return the result EXCLUSIVELY as a valid JSON object. 
@@ -46,7 +47,16 @@ class FoodDetectionService:
                 {
                   "food_name": "string (e.g. Grilled Chicken Breast)",
                   "estimated_weight_grams": number (e.g. 150),
-                  "confidence_score": number (e.g. 0.92)
+                  "confidence_score": number (e.g. 0.92),
+                  "estimated_nutrients": {
+                    "calories": number,
+                    "protein_g": number,
+                    "carbs_g": number,
+                    "fat_g": number,
+                    "fiber_g": number,
+                    "sugar_g": number,
+                    "sodium_mg": number
+                  }
                 }
               ]
             }

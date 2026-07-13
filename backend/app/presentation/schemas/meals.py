@@ -16,7 +16,7 @@ class NutritionSchema(BaseModel):
     sodium_mg: float
 
 class MealHistoryItem(BaseModel):
-    id: int
+    id: str
     timestamp: datetime
     meal_type: str
     description: Optional[str]

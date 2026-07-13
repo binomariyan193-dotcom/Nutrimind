@@ -112,6 +112,12 @@ class NutritionEngine:
                     matched_name = food_data.get("description")
                     fdc_id = food_data.get("fdcId")
                     nutrients = cls.extract_nutrients(food_data, item.estimated_weight_grams)
+                    if nutrients.calories == 0.0 and item.estimated_nutrients:
+                        nutrients = item.estimated_nutrients
+                        matched_name = f"AI Estimated ({item.food_name}) - Sparse USDA Data"
+                elif item.estimated_nutrients:
+                    nutrients = item.estimated_nutrients
+                    matched_name = f"AI Estimated ({item.food_name})"
                     
                 # 3. Create Analyzed Item
                 analyzed_item = AnalyzedFoodItem(
