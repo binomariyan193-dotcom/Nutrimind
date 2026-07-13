@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.presentation.api.routes import auth, profile, meals, nutrition, pipeline, analytics, recommendations, chat, planner, notifications, reports, admin
@@ -14,6 +15,10 @@ origins = [
     "http://localhost:5174", # Vite alternate port
     "http://localhost:3000",
 ]
+
+frontend_url = os.environ.get("FRONTEND_URL")
+if frontend_url:
+    origins.append(frontend_url)
 
 app.add_middleware(
     CORSMiddleware,
