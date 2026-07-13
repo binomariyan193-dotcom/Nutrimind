@@ -27,7 +27,8 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const signup = async (email, password, firstName, lastName) => {
-    const response = await fetch('http://localhost:8000/auth/signup', {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    const response = await fetch(`${API_URL}/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, first_name: firstName, last_name: lastName })
