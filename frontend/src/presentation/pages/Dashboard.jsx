@@ -78,6 +78,7 @@ const Dashboard = () => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [gamification, setGamification] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { fetchDashboardData(); }, [activeTab]);
@@ -85,17 +86,19 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [daily, trends, mealsHistory, notifs] = await Promise.all([
+      const [daily, trends, mealsHistory, notifs, gamificationData] = await Promise.all([
         analyticsApi.getDailyAnalytics(),
         analyticsApi.getTrendAnalytics(activeTab),
         getMealHistory({ limit: 3 }),
-        notificationsApi.getNotifications()
+        notificationsApi.getNotifications(),
+        analyticsApi.getGamification()
       ]);
       setDailyData(daily);
       setTrendData(trends.data);
       setRecentMeals(mealsHistory.meals);
       setNotifications(notifs.notifications);
       setUnreadCount(notifs.unread_count);
+      setGamification(gamificationData);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
     } finally {
@@ -269,7 +272,7 @@ const Dashboard = () => {
         </div>
 
         {/* ── Stat Cards ──────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <StatCard
             label="Current BMI"
             value={currentBMI}
@@ -306,7 +309,34 @@ const Dashboard = () => {
             iconColor="#a78bfa"
             iconBg="rgba(167,139,250,0.15)"
           />
+          <StatCard
+            label="Current Streak"
+            value={`${gamification?.current_streak || 0} Days`}
+            sub={gamification?.current_streak >= gamification?.longest_streak && gamification?.longest_streak > 0 ? "New personal best!" : `Best: ${gamification?.longest_streak || 0} days`}
+            icon={Flame}
+            iconColor="#f59e0b"
+            iconBg="rgba(245,158,11,0.15)"
+          />
         </div>
+        
+        {/* ── Badges Section ───────────────────────────── */}
+        {gamification?.badges?.length > 0 && (
+          <div className="mt-8 card card-glow p-5">
+            <h2 className="text-lg font-bold mb-4 flex items-center gap-2" style={{ color: '#e8edf5' }}>
+              <Award size={18} style={{ color: '#f59e0b' }} /> Earned Badges
+            </h2>
+            <div className="flex flex-wrap gap-4">
+              {gamification.badges.map((badge, idx) => (
+                <div key={idx} className="flex flex-col items-center gap-2 p-3 rounded-xl border border-white/5" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-orange-500/20">
+                    <Sparkles size={20} color="#fff" />
+                  </div>
+                  <span className="text-xs font-semibold text-center w-20" style={{ color: '#e8edf5' }}>{badge}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── Analytics ───────────────────────────────── */}
         <div className="mt-8 flex items-center justify-between mb-5">

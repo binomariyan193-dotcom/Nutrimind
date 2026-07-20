@@ -10,6 +10,23 @@ from app.application.services.health_analysis import HealthAnalysisEngine
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
+from app.presentation.schemas.analytics import GamificationResponse
+
+@router.get("/gamification", response_model=GamificationResponse)
+async def get_gamification(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Fetches the user's gamification stats (streaks and badges).
+    """
+    try:
+        gamification_data = HealthAnalysisEngine.evaluate_gamification(db=db, user_id=str(current_user.id))
+        return gamification_data
+    except Exception as e:
+        print(f"Gamification error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch gamification data: {str(e)}")
+
 @router.get("/daily", response_model=DailyHealthAnalysisResponse)
 async def get_daily_analytics(
     date: Optional[date_type] = Query(default_factory=date_type.today, description="The date to fetch analytics for (YYYY-MM-DD). Defaults to today."),

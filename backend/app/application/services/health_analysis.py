@@ -164,3 +164,89 @@ class HealthAnalysisEngine:
             active_medical_constraints=constraints,
             feedback=feedback
         )
+
+    @classmethod
+    def evaluate_gamification(cls, db: Session, user_id: str) -> dict:
+        """
+        Evaluates and updates the user's gamification stats (streaks and badges).
+        A successful day is defined as hitting within 10% of both calorie and protein targets.
+        """
+        profile = db.query(Profile).filter(Profile.user_id == user_id).first()
+        if not profile:
+            return {"current_streak": 0, "longest_streak": 0, "last_goal_hit_date": None, "badges": []}
+
+        today = date_type.today()
+        from datetime import timedelta
+        yesterday = today - timedelta(days=1)
+        
+        # We only evaluate yesterday if last_goal_hit_date is older than yesterday
+        # If it's already yesterday or today, it was already evaluated or they hit it today.
+        
+        needs_evaluation = True
+        if profile.last_goal_hit_date:
+            if profile.last_goal_hit_date >= yesterday:
+                needs_evaluation = False
+            elif profile.last_goal_hit_date < yesterday:
+                # They missed yesterday, streak resets to 0
+                profile.current_streak = 0
+                db.commit()
+                needs_evaluation = True
+
+        if needs_evaluation:
+            # Check yesterday's nutrition
+            baselines = cls.calculate_baselines(profile)
+            yesterday_nut = cls.get_daily_nutrition(db, user_id, yesterday)
+            
+            cal_goal = baselines["tdee"]
+            pro_goal = baselines["macros"]["protein"]
+            
+            cal_hit = (cal_goal * 0.9) <= yesterday_nut["calories"] <= (cal_goal * 1.1) if cal_goal else False
+            pro_hit = (pro_goal * 0.9) <= yesterday_nut["protein"] <= (pro_goal * 1.1) if pro_goal else False
+            
+            if cal_hit and pro_hit:
+                profile.current_streak += 1
+                profile.last_goal_hit_date = yesterday
+                if profile.current_streak > profile.longest_streak:
+                    profile.longest_streak = profile.current_streak
+                db.commit()
+
+        # Check today just to see if they already hit it, which would increment it immediately
+        # (Instead of waiting for tomorrow to check today)
+        if profile.last_goal_hit_date != today:
+            baselines = cls.calculate_baselines(profile)
+            today_nut = cls.get_daily_nutrition(db, user_id, today)
+            
+            cal_goal = baselines["tdee"]
+            pro_goal = baselines["macros"]["protein"]
+            
+            cal_hit = (cal_goal * 0.9) <= today_nut["calories"] <= (cal_goal * 1.1) if cal_goal else False
+            pro_hit = (pro_goal * 0.9) <= today_nut["protein"] <= (pro_goal * 1.1) if pro_goal else False
+            
+            if cal_hit and pro_hit:
+                profile.current_streak += 1
+                profile.last_goal_hit_date = today
+                if profile.current_streak > profile.longest_streak:
+                    profile.longest_streak = profile.current_streak
+                db.commit()
+
+        # Assign Badges based on streaks
+        badges = list(profile.badges) if profile.badges else []
+        new_badges = []
+        if profile.current_streak >= 3 and "3-Day Streak" not in badges:
+            new_badges.append("3-Day Streak")
+        if profile.current_streak >= 7 and "7-Day Streak" not in badges:
+            new_badges.append("7-Day Streak")
+        if profile.longest_streak >= 30 and "30-Day Streak" not in badges:
+            new_badges.append("30-Day Streak")
+            
+        if new_badges:
+            badges.extend(new_badges)
+            profile.badges = badges
+            db.commit()
+
+        return {
+            "current_streak": profile.current_streak,
+            "longest_streak": profile.longest_streak,
+            "last_goal_hit_date": str(profile.last_goal_hit_date) if profile.last_goal_hit_date else None,
+            "badges": profile.badges or []
+        }

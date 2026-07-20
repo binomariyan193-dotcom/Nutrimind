@@ -6,7 +6,7 @@ const API_URL = _rawApiUrl.replace(/\/+$/, '');
 
 const getAuthHeaders = async () => {
   return {
-    Authorization: `Bearer ${token}`,
+    Authorization: `Bearer demo-token`,
     'Content-Type': 'application/json'
   };
 };
@@ -29,6 +29,16 @@ export const analyticsApi = {
     try {
       const headers = await getAuthHeaders();
       const response = await axios.get(`${API_URL}/analytics/trends?period=${period}`, { headers });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
+  },
+  
+  getGamification: async () => {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await axios.get(`${API_URL}/analytics/gamification`, { headers });
       return response.data;
     } catch (error) {
       throw error.response?.data || error;

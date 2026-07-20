@@ -40,4 +40,8 @@ class TrendDataPoint(BaseModel):
 
 class TrendAnalyticsResponse(BaseModel):
     period: str # 'weekly' or 'monthly'
-    data: List[TrendDataPoint]
+class GamificationResponse(BaseModel):
+    current_streak: int
+    longest_streak: int
+    last_goal_hit_date: Optional[str] = None
+    badges: List[str]

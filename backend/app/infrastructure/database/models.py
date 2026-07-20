@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, ForeignKey, Boolean, DECIMAL, Date, Text
+from sqlalchemy import Column, String, DateTime, ForeignKey, Boolean, DECIMAL, Date, Text, Integer
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import declarative_base, relationship
 
@@ -41,6 +41,13 @@ class Profile(Base):
     exercise_frequency = Column(String(50))
     sleep_hours = Column(DECIMAL(4, 2))
     water_intake_liters = Column(DECIMAL(4, 2))
+    
+    # Gamification
+    current_streak = Column(Integer, default=0)
+    longest_streak = Column(Integer, default=0)
+    last_goal_hit_date = Column(Date)
+    badges = Column(JSONB, default=[])
+
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
 
