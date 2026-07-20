@@ -36,7 +36,7 @@ class AIRecommendationService:
                 "height_cm": profile.height_cm,
                 "gender": profile.gender,
                 "activity_level": profile.activity_level,
-                "diet_preference": profile.diet_preference,
+                "dietary_preferences": profile.dietary_preferences,
                 "health_goal": profile.health_goal
             }
             
@@ -46,7 +46,7 @@ class AIRecommendationService:
         if medical:
             medical_data = {
                 "conditions": medical.conditions,
-                "allergies": medical.food_allergies
+                "allergies": medical.allergies
             }
             
         # 3. Recent Meals (Last 48 hours)

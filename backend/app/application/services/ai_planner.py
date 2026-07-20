@@ -37,9 +37,9 @@ class AIMealPlannerService:
         # Build context string
         context_str = f"Target Daily Calories: {tdee} kcal. "
         if profile:
-            context_str += f"Health Goal: {profile.health_goal}. Activity Level: {profile.activity_level}. Diet Preference: {profile.diet_preference}. "
+            context_str += f"Health Goal: {profile.health_goal}. Activity Level: {profile.activity_level}. Dietary Preferences: {profile.dietary_preferences}. "
         if medical:
-            context_str += f"Medical Conditions: {medical.conditions}. Allergies: {medical.food_allergies}. "
+            context_str += f"Medical Conditions: {medical.conditions}. Allergies: {medical.allergies}. "
 
         try:
             model = genai.GenerativeModel(cls.MODEL_NAME)
