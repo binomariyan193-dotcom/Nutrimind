@@ -69,18 +69,18 @@ def update_health_profile(
         db.add(profile)
     
     # Update Profile fields
-    if profile_data.first_name is not None: profile.first_name = profile_data.first_name
-    if profile_data.last_name is not None: profile.last_name = profile_data.last_name
-    if profile_data.dob is not None: profile.dob = profile_data.dob
-    if profile_data.gender is not None: profile.gender = profile_data.gender
-    if profile_data.height_cm is not None: profile.height_cm = profile_data.height_cm
-    if profile_data.weight_kg is not None: profile.weight_kg = profile_data.weight_kg
-    if profile_data.activity_level is not None: profile.activity_level = profile_data.activity_level
-    if profile_data.dietary_preferences is not None: profile.dietary_preferences = profile_data.dietary_preferences
-    if profile_data.health_goal is not None: profile.health_goal = profile_data.health_goal
-    if profile_data.exercise_frequency is not None: profile.exercise_frequency = profile_data.exercise_frequency
-    if profile_data.sleep_hours is not None: profile.sleep_hours = profile_data.sleep_hours
-    if profile_data.water_intake_liters is not None: profile.water_intake_liters = profile_data.water_intake_liters
+    profile.first_name = profile_data.first_name
+    profile.last_name = profile_data.last_name
+    profile.dob = profile_data.dob
+    profile.gender = profile_data.gender
+    profile.height_cm = profile_data.height_cm
+    profile.weight_kg = profile_data.weight_kg
+    profile.activity_level = profile_data.activity_level
+    profile.dietary_preferences = profile_data.dietary_preferences
+    profile.health_goal = profile_data.health_goal
+    profile.exercise_frequency = profile_data.exercise_frequency
+    profile.sleep_hours = profile_data.sleep_hours
+    profile.water_intake_liters = profile_data.water_intake_liters
 
     # Upsert Medical History
     medical = db.query(MedicalHistory).filter(MedicalHistory.user_id == db_user.id).first()
@@ -88,8 +88,8 @@ def update_health_profile(
         medical = MedicalHistory(user_id=db_user.id)
         db.add(medical)
         
-    if profile_data.medical_conditions is not None: medical.conditions = profile_data.medical_conditions
-    if profile_data.food_allergies is not None: medical.allergies = profile_data.food_allergies
+    medical.conditions = profile_data.medical_conditions
+    medical.allergies = profile_data.food_allergies
 
     db.commit()
     db.refresh(profile)

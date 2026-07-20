@@ -14,6 +14,7 @@ class NutrientBreakdown(BaseModel):
     vitamin_a_iu: float = 0.0
     vitamin_c_mg: float = 0.0
     vitamin_d_iu: float = 0.0
+    health_score: float = 0.0
 
 class DetectedItemInput(BaseModel):
     food_name: str

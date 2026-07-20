@@ -5,9 +5,6 @@ const _rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const API_URL = _rawApiUrl.replace(/\/+$/, '');
 
 const getAuthHeaders = async () => {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  
   return {
     Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json'

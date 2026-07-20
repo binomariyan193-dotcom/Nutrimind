@@ -92,7 +92,16 @@ const HealthProfile = () => {
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      setError(err.detail || 'Failed to update profile');
+      console.error("Profile update error:", err);
+      if (err.message === "Network Error") {
+        setError("Network Error: Could not reach the API. Please check your connection or backend URL.");
+      } else if (err.detail && Array.isArray(err.detail)) {
+        // Handle FastAPI/Pydantic validation errors nicely
+        const messages = err.detail.map(e => `${e.loc[e.loc.length - 1]}: ${e.msg}`).join(' | ');
+        setError(`Validation Error: ${messages}`);
+      } else {
+        setError(err.detail || err.message || 'Failed to update profile');
+      }
     } finally {
       setSaving(false);
     }

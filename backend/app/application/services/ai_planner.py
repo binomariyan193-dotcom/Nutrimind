@@ -1,5 +1,6 @@
 import os
 import json
+import csv
 import google.generativeai as genai
 from fastapi import HTTPException
 from dotenv import load_dotenv
@@ -15,6 +16,13 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
+# Load the ground truth dataset once at module initialization
+CSV_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data', 'healthy_foods_database.csv')
+CSV_DATA = ""
+if os.path.exists(CSV_PATH):
+    with open(CSV_PATH, 'r', encoding='utf-8') as f:
+        CSV_DATA = f.read()
+
 class AIMealPlannerService:
     MODEL_NAME = "gemini-2.5-flash"
 
@@ -25,6 +33,9 @@ class AIMealPlannerService:
         """
         if not GEMINI_API_KEY:
             raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not configured.")
+
+        if not CSV_DATA:
+            raise HTTPException(status_code=500, detail="Ground truth dataset not found.")
 
         # Gather context
         profile = db.query(Profile).filter(Profile.user_id == user_id).first()
@@ -51,6 +62,14 @@ class AIMealPlannerService:
             USER PROFILE:
             {context_str}
 
+            CRITICAL DIRECTIVE: You MUST construct this meal plan STRICTLY using only food items from the provided GROUND TRUTH DATASET below. 
+            Do NOT hallucinate food items. You must use the exact food_name as it appears in the dataset.
+            The dataset values are per 100g. You must calculate the recommended portion size (e.g., "150g", "200g", "50g") and accurately scale the calories and protein_g based on the dataset's per-100g values.
+            You must also include the health_score for each item exactly as it appears in the dataset.
+
+            GROUND TRUTH DATASET (CSV FORMAT):
+            {CSV_DATA}
+            
             For each of the 7 days, provide a Breakfast, Lunch, Dinner, and a list of Snacks. 
             Ensure the total daily calories roughly equals their target of {tdee} kcal, and adhere strictly to any diet preferences or medical conditions/allergies.
             
@@ -67,25 +86,23 @@ class AIMealPlannerService:
               "days": [
                 {{
                   "day": 1,
-                  "breakfast": {{ "name": "string", "description": "string", "est_calories": 0, "protein_g": 0 }},
-                  "lunch": {{ "name": "string", "description": "string", "est_calories": 0, "protein_g": 0 }},
-                  "dinner": {{ "name": "string", "description": "string", "est_calories": 0, "protein_g": 0 }},
+                  "breakfast": {{ "name": "Exact food_name from dataset", "description": "string", "portion_size": "string (e.g., 150g)", "est_calories": 0, "protein_g": 0, "health_score": 0 }},
+                  "lunch": {{ "name": "Exact food_name from dataset", "description": "string", "portion_size": "string", "est_calories": 0, "protein_g": 0, "health_score": 0 }},
+                  "dinner": {{ "name": "Exact food_name from dataset", "description": "string", "portion_size": "string", "est_calories": 0, "protein_g": 0, "health_score": 0 }},
                   "snacks": [
-                    {{ "name": "string", "description": "string", "est_calories": 0, "protein_g": 0 }}
+                    {{ "name": "Exact food_name from dataset", "description": "string", "portion_size": "string", "est_calories": 0, "protein_g": 0, "health_score": 0 }}
                   ]
                 }}
-                // ... repeat up to day 7
               ],
               "grocery_list": [
                 {{
                   "category": "Vegetables",
-                  "items": ["Spinach", "Broccoli", "Carrots"]
+                  "items": ["Exact food_name 1", "Exact food_name 2"]
                 }},
                 {{
                   "category": "Fruits",
-                  "items": ["Apples", "Bananas"]
-                }},
-                // ... continue for Grains, Protein, Dairy, Other
+                  "items": ["Exact food_name 3"]
+                }}
               ]
             }}
             """
@@ -109,3 +126,4 @@ class AIMealPlannerService:
             raise HTTPException(status_code=500, detail="AI returned invalid data format for the meal plan.")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Meal Plan generation failed: {str(e)}")
+

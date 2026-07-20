@@ -1,5 +1,6 @@
 import os
 import json
+import csv
 import google.generativeai as genai
 from fastapi import HTTPException
 from dotenv import load_dotenv
@@ -10,6 +11,13 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
+
+# Load the ground truth dataset once at module initialization
+CSV_PATH = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'data', 'healthy_foods_database.csv')
+CSV_DATA = ""
+if os.path.exists(CSV_PATH):
+    with open(CSV_PATH, 'r', encoding='utf-8') as f:
+        CSV_DATA = f.read()
 
 class FoodDetectionService:
     """
@@ -28,38 +36,52 @@ class FoodDetectionService:
         if not GEMINI_API_KEY:
             raise HTTPException(status_code=500, detail="GEMINI_API_KEY is not configured.")
 
+        if not CSV_DATA:
+            raise HTTPException(status_code=500, detail="Ground truth dataset not found.")
+
         try:
             model = genai.GenerativeModel(cls.MODEL_NAME)
             
-            prompt = """
+            prompt = f"""
             You are an expert nutritionist and food recognition AI.
             Analyze the provided image and detect every single food item present on the plate or in the frame.
             For each item, estimate the serving size (weight in grams).
-            Also, provide your best estimation of the nutritional breakdown for that estimated weight.
+
+            CRITICAL DIRECTIVE: You MUST cross-reference all detected foods with the GROUND TRUTH DATASET provided below.
+            If a detected food matches an item in the dataset (fuzzy match is okay), use the EXACT `food_name` from the dataset.
+            If the food item is absolutely missing from the dataset and no reasonable match exists, you MUST explicitly flag the item by appending "[AI Estimated - Not in App Database]" to its food_name.
+
+            You must calculate the estimated nutritional breakdown for that estimated weight by scaling the per-100g values found in the dataset.
+            If the item is not in the dataset, provide your best estimation.
+            Also include the `health_score` from the dataset if a match is found, otherwise estimate one (0-100).
             Provide a confidence score between 0.0 and 1.0 for your detection.
+
+            GROUND TRUTH DATASET (CSV FORMAT):
+            {CSV_DATA}
             
             You MUST return the result EXCLUSIVELY as a valid JSON object. 
             Do not include markdown formatting like ```json or any other text before or after the JSON.
             
             The JSON structure must exactly match this format:
-            {
+            {{
               "items": [
-                {
-                  "food_name": "string (e.g. Grilled Chicken Breast)",
+                {{
+                  "food_name": "string (e.g. Exact Name from CSV or 'Name [AI Estimated - Not in App Database]')",
                   "estimated_weight_grams": number (e.g. 150),
                   "confidence_score": number (e.g. 0.92),
-                  "estimated_nutrients": {
+                  "estimated_nutrients": {{
                     "calories": number,
                     "protein_g": number,
                     "carbs_g": number,
                     "fat_g": number,
                     "fiber_g": number,
                     "sugar_g": number,
-                    "sodium_mg": number
-                  }
-                }
+                    "sodium_mg": number,
+                    "health_score": number
+                  }}
+                }}
               ]
-            }
+            }}
             """
             
             # Construct the image part for Gemini

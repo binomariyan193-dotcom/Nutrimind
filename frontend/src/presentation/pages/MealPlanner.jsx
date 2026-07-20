@@ -43,9 +43,11 @@ const MealPlanner = () => {
         </button>
       </div>
       <p className="text-sm leading-relaxed" style={{ color: '#8892a4' }}>{meal.description}</p>
-      <div className="flex items-center gap-2 mt-auto">
+      <div className="flex flex-wrap items-center gap-2 mt-auto">
         <span className="badge badge-amber"><Flame size={11} /> {meal.est_calories} kcal</span>
         <span className="badge badge-blue"><Utensils size={11} /> {meal.protein_g}g protein</span>
+        {meal.portion_size && <span className="badge px-2 py-0.5" style={{ background: 'rgba(167, 139, 250, 0.1)', color: '#a78bfa' }}>⚖️ {meal.portion_size}</span>}
+        {meal.health_score !== undefined && <span className="badge px-2 py-0.5" style={{ background: 'rgba(52, 211, 153, 0.1)', color: '#34d399' }}>💚 {meal.health_score}</span>}
       </div>
     </div>
   );

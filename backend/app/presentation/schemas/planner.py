@@ -4,8 +4,10 @@ from typing import List
 class MealIdea(BaseModel):
     name: str
     description: str
-    est_calories: int
-    protein_g: int
+    portion_size: str
+    est_calories: float
+    protein_g: float
+    health_score: int
 
 class DailyPlan(BaseModel):
     day: int
